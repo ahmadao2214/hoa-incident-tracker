@@ -133,28 +133,6 @@ const IncidentTimeline = () => {
   };
 
   useEffect(() => {
-    useEffect(() => {
-      const loadData = async () => {
-        try {
-          // Fetch data from our API endpoint instead of directly from CSV
-          const response = await fetch("/api/incidents");
-          const data = await response.json();
-
-          if (!response.ok)
-            throw new Error(data.message || "Failed to fetch incidents");
-
-          setIncidents(processIncidents(data));
-          setLoading(false);
-        } catch (err) {
-          console.error("Error loading incidents:", err);
-          setError("Error loading incidents: " + err.message);
-          loadSampleData(); // Fall back to sample data
-        }
-      };
-
-      loadData();
-    }, []);
-
     // Fallback function to load sample data when the file can't be accessed
     const loadSampleData = () => {
       console.log("Loading sample data...");
@@ -200,6 +178,24 @@ const IncidentTimeline = () => {
 
       setIncidents(processIncidents(sampleData));
       setLoading(false);
+    };
+
+    const loadData = async () => {
+      try {
+        // Fetch data from our API endpoint instead of directly from CSV
+        const response = await fetch("/api/incidents");
+        const data = await response.json();
+
+        if (!response.ok)
+          throw new Error(data.message || "Failed to fetch incidents");
+
+        setIncidents(processIncidents(data));
+        setLoading(false);
+      } catch (err) {
+        console.error("Error loading incidents:", err);
+        setError("Error loading incidents: " + err.message);
+        loadSampleData(); // Fall back to sample data
+      }
     };
 
     loadData();
