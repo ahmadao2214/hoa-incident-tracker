@@ -19,6 +19,9 @@ const IncidentTimeline = () => {
 
   // Track the currently active resident filter
   const [residentFilter, setResidentFilter] = useState("all");
+  
+  // Track the currently active location filter
+  const [locationFilter, setLocationFilter] = useState("all");
 
   // Get type tag style
   const getTypeTagStyle = (type) => {
@@ -237,6 +240,17 @@ const IncidentTimeline = () => {
     return ["all", ...uniqueResidents];
   }, [incidents]);
 
+  // Get unique locations for filtering
+  const locations = React.useMemo(() => {
+    const uniqueLocations = [
+      ...new Set(
+        incidents.map((incident) => incident.Location).filter(Boolean)
+      ),
+    ].sort();
+
+    return ["all", ...uniqueLocations];
+  }, [incidents]);
+
   // Calculate filtered incidents based on all active filters
   const filteredIncidents = React.useMemo(() => {
     return incidents.filter((incident) => {
@@ -253,6 +267,11 @@ const IncidentTimeline = () => {
         return false;
       }
 
+      // Location filter
+      if (locationFilter !== "all" && incident.Location !== locationFilter) {
+        return false;
+      }
+
       // Date range filter
       if (dateRange.startDate && dateRange.endDate) {
         const incidentDate = incident.dateObj;
@@ -266,7 +285,7 @@ const IncidentTimeline = () => {
 
       return true;
     });
-  }, [incidents, filter, residentFilter, dateRange]);
+  }, [incidents, filter, residentFilter, locationFilter, dateRange]);
 
   // Group filtered incidents by month and year
   const groupedIncidents = _.groupBy(filteredIncidents, (incident) => {
@@ -467,6 +486,27 @@ const IncidentTimeline = () => {
                     ))}
                 </select>
               </div>
+              
+              {/* Location Filter */}
+              <div>
+                <label className="block mb-2 font-medium">
+                  Filter by Location
+                </label>
+                <select
+                  className="w-full border border-gray-300 rounded p-2"
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                >
+                  <option value="all">All Locations</option>
+                  {locations
+                    .filter((loc) => loc !== "all")
+                    .map((location) => (
+                      <option key={location} value={location}>
+                        {location} ({incidents.filter((i) => i.Location === location).length})
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
 
             {/* Filter reset button */}
@@ -475,6 +515,7 @@ const IncidentTimeline = () => {
                 onClick={() => {
                   setFilter("all");
                   setResidentFilter("all");
+                  setLocationFilter("all");
                   setDateRange({ startDate: null, endDate: null });
                 }}
                 className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded font-medium"
